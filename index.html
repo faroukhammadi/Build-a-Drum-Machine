@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NINE·CELL — Sampler Unit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --chassis-dark:#19160F;
+    --chassis-mid:#241F17;
+    --panel:#2C2719;
+    --panel-light:#3A3220;
+    --screen-well:#0B0904;
+    --amber:#FFB627;
+    --amber-dim:#5C4116;
+    --amber-glow:rgba(255,182,39,0.55);
+    --pad-body:#352E22;
+    --pad-light:#463C2A;
+    --pad-shadow:#0E0C08;
+    --rivet:#0F0D08;
+    --ink:#E9E0CC;
+    --ink-dim:#9C9176;
+    --rust:#B5492F;
+    --rust-bright:#E8693F;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% -10%, #2a2114 0%, transparent 55%),
+      radial-gradient(circle at 90% 110%, #1a1006 0%, transparent 50%),
+      #100D08;
+    color:var(--ink);
+    font-family:'Barlow Condensed', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:36px 16px;
+  }
+
+  /* faint grain overlay */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:0.05;
+    background-image:repeating-linear-gradient(0deg, #fff 0px, transparent 1px, transparent 2px);
+    mix-blend-mode:overlay;
+  }
+
+  #drum-machine{
+    position:relative;
+    width:min(480px, 100%);
+    background:
+      linear-gradient(155deg, var(--panel-light) 0%, var(--panel) 38%, var(--chassis-mid) 100%);
+    border-radius:18px;
+    padding:22px 22px 28px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 30px 60px -20px rgba(0,0,0,0.75),
+      0 0 0 1px #0c0a06;
+  }
+
+  /* corner rivets, purely structural flourish of a hardware chassis */
+  .rivet{
+    position:absolute;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #6a5d3d, var(--rivet) 70%);
+    box-shadow:0 1px 1px rgba(0,0,0,0.6);
+  }
+  .rivet.tl{top:12px;left:12px;}
+  .rivet.tr{top:12px;right:12px;}
+  .rivet.bl{bottom:12px;left:12px;}
+  .rivet.br{bottom:12px;right:12px;}
+
+  .brand-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:2px 4px 14px;
+    border-bottom:1px solid rgba(0,0,0,0.35);
+    margin-bottom:14px;
+  }
+
+  .brand{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    letter-spacing:0.12em;
+    color:var(--ink);
+  }
+  .brand span{ color:var(--rust-bright); }
+
+  .model-tag{
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.18em;
+    color:var(--ink-dim);
+    text-transform:uppercase;
+  }
+
+  .standby-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:10px;
+    letter-spacing:0.16em;
+    color:var(--ink-dim);
+    text-transform:uppercase;
+    margin-bottom:10px;
+    padding:0 4px;
+  }
+
+  .standby-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--rust);
+    box-shadow:0 0 6px 1px var(--rust-bright);
+    animation:breathe 2.6s ease-in-out infinite;
+  }
+
+  @keyframes breathe{
+    0%,100%{ opacity:0.55; }
+    50%{ opacity:1; }
+  }
+
+  /* the LED readout well */
+  .screen-well{
+    background:var(--screen-well);
+    border-radius:8px;
+    padding:14px 16px;
+    margin-bottom:18px;
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,0.85),
+      inset 0 0 0 1px #000;
+    min-height:50px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+
+  .screen-label{
+    font-size:9px;
+    letter-spacing:0.2em;
+    color:#5a4f37;
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+
+  #display{
+    margin:0;
+    font-family:'JetBrains Mono', monospace;
+    font-size:19px;
+    font-weight:500;
+    letter-spacing:0.04em;
+    color:var(--amber-dim);
+    text-shadow:none;
+    transition:color 0.08s linear, text-shadow 0.08s linear;
+    min-height:24px;
+  }
+
+  #display.lit{
+    color:var(--amber);
+    text-shadow:0 0 6px var(--amber-glow), 0 0 18px var(--amber-glow);
+  }
+
+  #pad-bank{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:12px;
+  }
+
+  .drum-pad{
+    position:relative;
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    aspect-ratio:1 / 0.82;
+    border-radius:10px;
+    background:
+      linear-gradient(160deg, var(--pad-light) 0%, var(--pad-body) 55%, #2A2418 100%);
+    box-shadow:
+      0 5px 0 var(--pad-shadow),
+      0 8px 14px -4px rgba(0,0,0,0.65),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+    color:var(--ink);
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:0.02em;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform 0.06s ease, box-shadow 0.06s ease;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+
+  .drum-pad::after{
+    content:attr(data-sound);
+    position:absolute;
+    bottom:7px;
+    left:0;
+    right:0;
+    text-align:center;
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+
+  .drum-pad:focus-visible{
+    outline:2px solid var(--rust-bright);
+    outline-offset:3px;
+  }
+
+  .drum-pad.active{
+    transform:translateY(4px);
+    box-shadow:
+      0 1px 0 var(--pad-shadow),
+      0 2px 6px -2px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      0 0 0 2px var(--rust-bright),
+      0 0 22px 2px var(--amber-glow);
+  }
+
+  .drum-pad.active::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:10px;
+    background:radial-gradient(circle, var(--amber-glow), transparent 70%);
+    opacity:0.5;
+    pointer-events:none;
+  }
+
+  .foot-row{
+    display:flex;
+    justify-content:space-between;
+    margin-top:18px;
+    padding:0 4px;
+    font-size:9px;
+    letter-spacing:0.16em;
+    color:#5a4f37;
+    text-transform:uppercase;
+  }
+
+  @media (max-width:380px){
+    .drum-pad{ font-size:18px; }
+    .drum-pad::after{ font-size:8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .standby-dot{ animation:none; }
+    .drum-pad, #display{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="drum-machine">
+    <span class="rivet tl"></span>
+    <span class="rivet tr"></span>
+    <span class="rivet bl"></span>
+    <span class="rivet br"></span>
+
+    <div class="brand-row">
+      <div class="brand">NINE<span>·</span>CELL</div>
+      <div class="model-tag">Unit MK-9</div>
+    </div>
+
+    <div class="standby-row">
+      <span class="standby-dot"></span> Ready
+    </div>
+
+    <div class="screen-well">
+      <div class="screen-label">Last Trigger</div>
+      <p id="display">— silence —</p>
+    </div>
+
+    <div id="pad-bank">
+      <button type="button" class="drum-pad" id="pad-heater-1" data-sound="Heater 1">
+        Q
+        <audio class="clip" id="Q" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-1.mp3"></audio>
+      </button>
+      <button type="button" class="drum-pad" id="pad-heater-2" data-sound="Heater 2">
+        W
+        <audio class="clip" id="W" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-2.mp3"></audio>
+      </button>
+      <button type="button" class="drum-pad" id="pad-heater-3" data-sound="Heater 3">
+        E
+        <audio class="clip" id="E" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-3.mp3"></audio>
+      </button>
+
+      <button type="button" class="drum-pad" id="pad-heater-4" data-sound="Heater 4">
+        A
+        <audio class="clip" id="A" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-4_1.mp3"></audio>
+      </button>
+      <button type="button" class="drum-pad" id="pad-clap" data-sound="Clap">
+        S
+        <audio class="clip" id="S" src="https://cdn.freecodecamp.org/curriculum/drum/Heater-6.mp3"></audio>
+      </button>
+      <button type="button" class="drum-pad" id="pad-open-hh" data-sound="Open-HH">
+        D
+        <audio class="clip" id="D" src="https://cdn.freecodecamp.org/curriculum/drum/Dsc_Oh.mp3"></audio>
+      </button>
+
+      <button type="button" class="drum-pad" id="pad-kick-n-hat" data-sound="Kick-n'-Hat">
+        Z
+        <audio class="clip" id="Z" src="https://cdn.freecodecamp.org/curriculum/drum/Kick_n_Hat.mp3"></audio>
+      </button>
+      <button type="button" class="drum-pad" id="pad-kick" data-sound="Kick">
+        X
+        <audio class="clip" id="X" src="https://cdn.freecodecamp.org/curriculum/drum/RP4_KICK_1.mp3"></audio>
+      </button>
+      <button type="button" class="drum-pad" id="pad-closed-hh" data-sound="Closed-HH">
+        C
+        <audio class="clip" id="C" src="https://cdn.freecodecamp.org/curriculum/drum/Cev_H2.mp3"></audio>
+      </button>
+    </div>
+
+    <div class="foot-row">
+      <span>Trig: Click / Key</span>
+      <span>9× Mono Voice</span>
+    </div>
+  </div>
+
+<script>
+  (function () {
+    var display = document.getElementById('display');
+    var pads = Array.prototype.slice.call(document.querySelectorAll('.drum-pad'));
+    var litTimer = null;
+
+    function triggerPad(pad) {
+      if (!pad) return;
+      var audio = pad.querySelector('audio.clip');
+      var soundName = pad.getAttribute('data-sound');
+
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play();
+      }
+
+      display.textContent = soundName;
+      display.classList.add('lit');
+      clearTimeout(litTimer);
+      litTimer = setTimeout(function () {
+        display.classList.remove('lit');
+      }, 250);
+
+      pad.classList.add('active');
+      setTimeout(function () {
+        pad.classList.remove('active');
+      }, 120);
+    }
+
+    pads.forEach(function (pad) {
+      pad.addEventListener('click', function () {
+        triggerPad(pad);
+      });
+    });
+
+    document.addEventListener('keydown', function (event) {
+      var key = event.key.toUpperCase();
+      var audioEl = document.getElementById(key);
+      if (!audioEl) return;
+      var pad = audioEl.closest('.drum-pad');
+      triggerPad(pad);
+    });
+  })();
+</script>
+
+</body>
+</html>
